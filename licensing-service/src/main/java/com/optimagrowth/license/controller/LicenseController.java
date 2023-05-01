@@ -1,4 +1,7 @@
 package com.optimagrowth.license.controller;
+// WebMvcLinkBuilder는 컨트롤러 클래스에 대한 링크를 생성하는 유틸리티 클래스
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import com.optimagrowth.license.model.License;
 import com.optimagrowth.license.service.LicenseService;
@@ -17,12 +20,21 @@ public class LicenseController {
     private LicenseService licenseService;
 
     // URL의 두 매개변수(organizationId, licenseId)를 @GetMapping 매개변수로 매핑
-    @GetMapping(value = "/{licenseId}")
+    @GetMapping("/{licenseId}")
     // 라이선스 데이터를 조회하는 GET 메서드
     public ResponseEntity<License> getLicense(
             @PathVariable("organizationId") String organizationId,
             @PathVariable("licenseId") String licenseId) {
         License license = licenseService.getLicense(licenseId, organizationId);
+        // add()는 RepresentationModel 클래스 메서드
+        license.add(
+                // linkTo() 메서드는 LicenseController 클래스를 검사해 루트 매핑을 얻음
+                // methodOn() 메서드는 대상 메서드에 더미 호출을 수행해 메서드 매핑을 가져옴
+                linkTo(methodOn(LicenseController.class).getLicense(organizationId, license.getLicenseId())).withSelfRel(),
+                linkTo(methodOn(LicenseController.class).createLicense(organizationId, license, null)).withRel("createLicense"),
+                linkTo(methodOn(LicenseController.class).updateLicense(organizationId, license)).withRel("updateLicense"),
+                linkTo(methodOn(LicenseController.class).deleteLicense(organizationId, license.getLicenseId())).withRel("deleteLicense")
+        );
         // ResponseEntity로 전체 HTTP 응답을 표현
         return ResponseEntity.ok(license);
     }
