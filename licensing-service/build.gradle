@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '2.7.11'
 	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+	id 'com.palantir.docker' version '0.25.0'
 }
 
 group = 'com.optimagrowth'
@@ -12,6 +13,14 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+}
+
+docker {
+	println("gradle docker-plugin start = spring-example:${project.version}")
+	name "license-service:${project.version}"
+	files tasks.bootJar.outputs.files
+	tag 'DockerHub', "boldfaced7/license-service:${project.version}"
+	buildArgs(['JAR_FILE': tasks.bootJar.outputs.files.singleFile.name])
 }
 
 repositories {
