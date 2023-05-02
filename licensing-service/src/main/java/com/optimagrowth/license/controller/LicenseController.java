@@ -25,15 +25,15 @@ public class LicenseController {
     public ResponseEntity<License> getLicense(
             @PathVariable("organizationId") String organizationId,
             @PathVariable("licenseId") String licenseId) {
-        License license = licenseService.getLicense(licenseId, organizationId);
+        License license = licenseService.getLicense(licenseId, organizationId).orElse(new License());
         // add()는 RepresentationModel 클래스 메서드
         license.add(
                 // linkTo() 메서드는 LicenseController 클래스를 검사해 루트 매핑을 얻음
                 // methodOn() 메서드는 대상 메서드에 더미 호출을 수행해 메서드 매핑을 가져옴
                 linkTo(methodOn(LicenseController.class).getLicense(organizationId, license.getLicenseId())).withSelfRel(),
-                linkTo(methodOn(LicenseController.class).createLicense(organizationId, license, null)).withRel("createLicense"),
-                linkTo(methodOn(LicenseController.class).updateLicense(organizationId, license)).withRel("updateLicense"),
-                linkTo(methodOn(LicenseController.class).deleteLicense(organizationId, license.getLicenseId())).withRel("deleteLicense")
+                linkTo(methodOn(LicenseController.class).createLicense(license)).withRel("createLicense"),
+                linkTo(methodOn(LicenseController.class).updateLicense(license)).withRel("updateLicense"),
+                linkTo(methodOn(LicenseController.class).deleteLicense(license.getLicenseId())).withRel("deleteLicense")
         );
         // ResponseEntity로 전체 HTTP 응답을 표현
         return ResponseEntity.ok(license);
@@ -41,28 +41,18 @@ public class LicenseController {
 
     @PutMapping
     // 라이선스를 업데이트하는 PUT 메서드
-    public ResponseEntity<String> updateLicense(
-            @PathVariable("organizationId") String organizationId,
-            @RequestBody License request) {
+    public ResponseEntity<License> updateLicense(@RequestBody License request) {
         // HTTP 요청 바디(내용)를 라이선스 객체로 매핑
-        return ResponseEntity.ok(licenseService.updateLicense(request, organizationId));
+        return ResponseEntity.ok(licenseService.updateLicense(request));
     }
-
     @PostMapping
     // 라이선스를 생성하는 POST 메서드
-    public ResponseEntity<String> createLicense(
-            @PathVariable("organizationId") String organizationId,
-            @RequestBody License request,
-            // 요청 헤더 값을 메서드 매개변수에 매핑
-            @RequestHeader(value="Accept-Language", required = false) Locale locale) {
-        return ResponseEntity.ok(licenseService.createLicense(request, organizationId, locale));
+    public ResponseEntity<License> createLicense(@RequestBody License request) {
+        return ResponseEntity.ok(licenseService.createLicense(request));
     }
-
-    @DeleteMapping(value = "/{licenseId}")
+    @DeleteMapping("/{licenseId}")
     // 라이선스를 삭제하는 DELETE 메서드
-    public ResponseEntity<String> deleteLicense(
-            @PathVariable("organizationId") String organizationId,
-            @PathVariable("licenseId") String licenseId) {
-        return ResponseEntity.ok(licenseService.deleteLicense(licenseId, organizationId));
+    public ResponseEntity<String> deleteLicense(@PathVariable("licenseId") String licenseId) {
+        return ResponseEntity.ok(licenseService.deleteLicense(licenseId));
     }
 }
